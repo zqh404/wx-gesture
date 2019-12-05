@@ -11,6 +11,13 @@ function Gesture(options) {
   this.deltaX = 0; //平移x轴距离
   this.deltaY = 0; //平移y轴距离
   this.isDoubleMove = options.isDoubleMove || false; //是否开启双指移动
+
+  /**
+   * 度量衡说明
+   * 1、angle角度制, 可用于DOM的transform角度变化
+   * 2、radius弧度制, 可用于Canvas的rotate弧度变化
+   */
+  this.weightsAndMeasures = options.weightsAndMeasures || "angle";
 }
 
 Gesture.prototype = {
@@ -42,6 +49,7 @@ Gesture.prototype = {
       callback({deltaX: this.deltaX, deltaY: this.deltaY, rotate: this.rotate, scale: this.scale});
     }
   },
+
   move(e, callback) {
     if (!e.touches) {
       return;
@@ -90,7 +98,7 @@ Gesture.prototype = {
     //双指旋转、缩放
     if (curFingers > 1) {
       let curSecPoint = this.getPoint(e, 1),
-          vector2 = this.getVector(curSecPoint, curPoint);
+        vector2 = this.getVector(curSecPoint, curPoint);
 
       pinchLength = this.getLength(vector2);
 
@@ -133,7 +141,7 @@ Gesture.prototype = {
 
   //获取点坐标
   getPoint(e, index) {
-    if(!e.touches){
+    if (!e.touches) {
       return
     }
     return {
@@ -144,7 +152,7 @@ Gesture.prototype = {
 
   //计算向量
   getVector(p1, p2) {
-    if(!p1 || !p2){
+    if (!p1 || !p2) {
       return
     }
 
@@ -156,7 +164,7 @@ Gesture.prototype = {
 
   //计算向量的模
   getLength(v) {
-    if(v){
+    if (!v) {
       return;
     }
 
@@ -187,10 +195,16 @@ Gesture.prototype = {
     r = dot / mr;
 
     //cos值区间在[-1, 1]，不能超过该三角函数cos的纵坐标区间
-    r = r > 1 ? 1 : (r < -1 ?  -1 : r);
+    r = r > 1 ? 1 : (r < -1 ? -1 : r);
 
     // 输出角度
-    return Math.acos(r) * direction * 180 / Math.PI;
+    let angleOrRadius = null;
+    if (this.weightsAndMeasures === 'angle') {
+      angleOrRadius = Math.acos(r) * direction * 180 / Math.PI;
+    } else {
+      angleOrRadius = Math.acos(r) * direction * Math.PI / 180;
+    }
+    return angleOrRadius
   },
 
   //获取变量类型
